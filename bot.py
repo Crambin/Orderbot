@@ -1,3 +1,5 @@
+import re
+import json
 import logging
 import traceback
 import discord
@@ -8,14 +10,39 @@ logger = logging.getLogger(__name__)
 
 
 class Bot(commands.Bot):
-    error_log_channel_id = 690650346665803777
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, command_prefix=Bot.get_prefix, **kwargs)
+        self.mention_pattern = None
 
-    def __init__(self, prefix, *args, **kwargs):
-        super().__init__(*args, command_prefix=prefix, **kwargs)
+    async def get_prefix(self, message):
+        mention = self.mention_pattern.match(message.content)
+        if mention:
+            return mention.group()
+
+        try:
+            with open('prefixes.json', 'r') as f:
+                prefixes = json.load(f)
+        except FileNotFoundError:
+            prefixes = {}
+
+        if f"{message.guild.id}" not in prefixes:
+            prefixes[f"{message.guild.id}"] = '!'
+            with open('prefixes.json', 'w') as f:
+                json.dump(prefixes, f, indent=4)
+
+        return prefixes[f"{message.guild.id}"]
 
     async def on_ready(self):
         logger.info(f"Successfully logged in as {self.user.name} ID:{self.user.id}\t"
                     f"d.py version: {discord.__version__}")
+
+        self.mention_pattern = re.compile(rf"<@!{self.user.id}>\s*")
+
+    async def on_message(self, message):
+        if not self.is_ready():
+            return
+
+        await self.process_commands(message)
 
     async def on_error(self, event, *args):
         msg = f"{event} event error exception!\n{traceback.format_exc()}"

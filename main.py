@@ -18,7 +18,7 @@ root_logger.info(f"Running as main bot.")
 
 if __name__ == "__main__":
     load_dotenv()
-    bot = Bot(prefix="!")
+    bot = Bot()
     for extension_path in Path("./cogs").glob("*.py"):
         extension_name = extension_path.stem
 
