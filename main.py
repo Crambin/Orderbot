@@ -30,4 +30,5 @@ if __name__ == "__main__":
             traceback_msg = traceback.format_exception(etype=type(e), value=e, tb=e.__traceback__)
             root_logger.info(f"Failed to load cog {dotted_path} - traceback:{traceback_msg}")
 
+    bot.loop.create_task(bot.update_presence())
     bot.run(os.getenv("BOT_TOKEN"))
