@@ -17,7 +17,7 @@ class Bot(commands.Bot):
         self.mention_pattern = None
 
     async def get_prefix(self, message):
-        mention = self.mention_pattern.match(message.content)
+        mention = re.match(rf"<@!{self.user.id}>\s*", message.content)
         if mention:
             return mention.group()
 
@@ -32,13 +32,16 @@ class Bot(commands.Bot):
             with open('prefixes.json', 'w') as f:
                 json.dump(prefixes, f, indent=4)
 
-        return prefixes[f"{message.guild.id}"]
+        prefix = prefixes[f"{message.guild.id}"]
+        invocation = re.match(rf"{prefix}\s*", message.content)
+        if invocation:
+            return invocation.group()
+
+        return prefix
 
     async def on_ready(self):
         logger.info(f"discord.py version: {discord.__version__}")
         logger.info(f"Successfully logged in as {self.user}   ID: {self.user.id}")
-
-        self.mention_pattern = re.compile(rf"<@!{self.user.id}>\s*")
 
     async def on_message(self, message):
         if not self.is_ready():

@@ -21,6 +21,7 @@ class Moderation(commands.Cog):
         elif prefix == "default":
             prefix = constants.default_prefix
 
+        prefix = prefix.strip()
         if len(prefix) > 15:
             await ctx.send("Prefix must be 15 characters or less.")
             return
