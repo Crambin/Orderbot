@@ -7,6 +7,7 @@ import asyncio
 import discord
 from discord.ext import commands
 import constants
+import SQL
 
 logger = logging.getLogger(__name__)
 
@@ -14,6 +15,7 @@ logger = logging.getLogger(__name__)
 class Bot(commands.Bot):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, command_prefix=Bot.get_prefix, case_insensitive=True, **kwargs)
+        self.db = SQL.Database(os.getenv('DATABASE_URL'))
         self.mention_pattern = None
 
     async def get_prefix(self, message):
@@ -21,23 +23,12 @@ class Bot(commands.Bot):
         if mention:
             return mention.group()
 
-        try:
-            with open('prefixes.json', 'r') as f:
-                prefixes = json.load(f)
-        except FileNotFoundError:
-            prefixes = {}
+        prefix = self.db.get_prefix(message.guild.id)
+        if not prefix:
+            prefix = constants.default_prefix
+            self.db.insert_guild(message.guild.id, prefix)
 
-        if f"{message.guild.id}" not in prefixes:
-            prefixes[f"{message.guild.id}"] = constants.default_prefix
-            with open('prefixes.json', 'w') as f:
-                json.dump(prefixes, f, indent=4)
-
-        prefix = prefixes[f"{message.guild.id}"]
-        invocation = re.match(rf"{prefix}\s*", message.content)
-        if invocation:
-            return invocation.group()
-
-        return prefix
+        return prefix[0]
 
     async def on_ready(self):
         logger.info(f"discord.py version: {discord.__version__}")

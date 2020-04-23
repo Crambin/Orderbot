@@ -10,11 +10,8 @@ class Moderation(commands.Cog):
     @commands.command()
     @commands.has_permissions(administrator=True)
     async def prefix(self, ctx, *, prefix=None):
-        with open('prefixes.json', 'r') as f:
-            prefixes = json.load(f)
-
         if prefix is None:
-            prefix = prefixes[f"{ctx.guild.id}"]
+            prefix = self.bot.db.get_prefix(ctx.guild.id)[0]
             await ctx.send(f"The command prefix is `{prefix}`\n"
                            f"To run commands, use `{prefix}command` or do `@{self.bot.user}` command")
             return
@@ -26,10 +23,7 @@ class Moderation(commands.Cog):
             await ctx.send("Prefix must be 15 characters or less.")
             return
 
-        prefixes[f"{ctx.guild.id}"] = prefix
-        with open('prefixes.json', 'w') as f:
-            json.dump(prefixes, f, indent=4)
-
+        self.bot.db.update_guild(ctx.guild.id, prefix)
         await ctx.send(f"The command prefix has been changed to `{prefix}`\n"
                        f"To run commands, use `{prefix}command` or do `@{self.bot.user}` command")
 
