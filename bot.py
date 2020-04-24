@@ -1,6 +1,5 @@
 import os
 import re
-import json
 import logging
 import traceback
 import asyncio
@@ -16,7 +15,6 @@ class Bot(commands.Bot):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, command_prefix=Bot.get_prefix, case_insensitive=True, **kwargs)
         self.db = SQL.Database(os.getenv('DATABASE_URL'))
-        self.mention_pattern = None
 
     async def get_prefix(self, message):
         mention = re.match(rf"<@!{self.user.id}>\s*", message.content)
@@ -33,12 +31,6 @@ class Bot(commands.Bot):
     async def on_ready(self):
         logger.info(f"discord.py version: {discord.__version__}")
         logger.info(f"Successfully logged in as {self.user}   ID: {self.user.id}")
-
-    async def on_message(self, message):
-        if not self.is_ready():
-            return
-
-        await self.process_commands(message)
 
     async def on_error(self, event, *args):
         msg = f"{event} event error exception!\n{traceback.format_exc()}"
