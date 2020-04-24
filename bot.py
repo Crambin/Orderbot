@@ -16,17 +16,24 @@ class Bot(commands.Bot):
         super().__init__(*args, command_prefix=Bot.get_prefix, case_insensitive=True, **kwargs)
         self.db = SQL.Database(os.getenv('DATABASE_URL'))
 
+        cur = self.db.process_sql("SELECT GuildID, Prefix FROM GuildTbl")
+        self.guild_prefixes = dict(cur)
+        cur.close()
+
+        logger.info("Loaded guild prefixes into memory")
+
     async def get_prefix(self, message):
         mention = re.match(rf"<@!{self.user.id}>\s*", message.content)
         if mention:
             return mention.group()
 
-        prefix = self.db.get_prefix(message.guild.id)
-        if not prefix:
+        prefix = self.guild_prefixes.get(message.guild.id, None)
+        if prefix is None:
             prefix = constants.default_prefix
+            self.guild_prefixes[message.guild.id] = prefix
             self.db.insert_guild(message.guild.id, prefix)
 
-        return prefix[0]
+        return prefix
 
     async def on_ready(self):
         logger.info(f"discord.py version: {discord.__version__}")

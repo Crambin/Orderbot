@@ -34,13 +34,6 @@ class Database:
         return cur
 
     # guilds
-    def get_prefix(self, guild_id):
-        cur = self.process_sql("SELECT Prefix FROM GuildTbl WHERE GuildID = (%s)", parameters=(guild_id,))
-        try:
-            return cur.fetchone()
-        finally:
-            cur.close()
-
     def insert_guild(self, *record):
         cur = self.process_sql("INSERT INTO GuildTbl(GuildID, Prefix) VALUES (%s, %s)", parameters=record)
         cur.close()
