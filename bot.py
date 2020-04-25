@@ -27,6 +27,9 @@ class Bot(commands.Bot):
         if mention:
             return mention.group()
 
+        if not message.guild:
+            return constants.default_prefix
+
         prefix = self.guild_prefixes.get(message.guild.id, None)
         if prefix is None:
             prefix = constants.default_prefix
