@@ -1,7 +1,9 @@
+import math
 import traceback
 import logging
 import discord
 from discord.ext import commands
+from utils import exceptions
 
 logger = logging.getLogger(__name__)
 
@@ -31,6 +33,12 @@ class CommandErrorHandler(commands.Cog):
             except discord.Forbidden:
                 return
 
+        elif isinstance(error, exceptions.InvokerNotDeveloper):
+            await ctx.send("This command is limited to usage by the bot's developers only.")
+
+        elif isinstance(error, exceptions.InvokerRoleTooLow):
+            await ctx.send("This command can only be used on members with a lower role than yourself.")
+
         # this will only return if it is a DM forbidden error
         elif isinstance(error, discord.errors.Forbidden) and error.code == 50007:
             return
@@ -51,10 +59,17 @@ class CommandErrorHandler(commands.Cog):
             else:
                 await ctx.send("You do not have permission to use this command.")
 
+        elif isinstance(error, commands.CommandOnCooldown):
+            await ctx.send(f"This command is on cooldown, please retry in {math.ceil(error.retry_after)}s.")
+
         elif isinstance(error, commands.DisabledCommand):
             await ctx.send("This command has been disabled.")
 
         else:
+            # this edge case is a sin and will only occur if the bot cannot send messages
+            if ctx.guild and not ctx.channel.permissions_for(ctx.me).send_messages:
+                return
+
             exception_msg = f"Ignoring exception in command {ctx.command} error: {traceback.format_exc()}"
             logger.warning(exception_msg)
             await self.bot.log_error(exception_msg)

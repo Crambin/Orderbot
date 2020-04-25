@@ -2,6 +2,7 @@ import os
 import re
 import logging
 import traceback
+from datetime import datetime
 import asyncio
 import discord
 from discord.ext import commands
@@ -14,6 +15,7 @@ logger = logging.getLogger(__name__)
 class Bot(commands.Bot):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, command_prefix=Bot.get_prefix, case_insensitive=True, **kwargs)
+        self.start_time = datetime.now()
         self.db = SQL.Database(os.getenv('DATABASE_URL'))
 
         cur = self.db.process_sql("SELECT GuildID, Prefix FROM GuildTbl")

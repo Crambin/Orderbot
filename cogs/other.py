@@ -7,11 +7,17 @@ class Other(commands.Cog):
 
     @commands.command()
     async def say(self, ctx, *, message):
+        """
+        Will say whatever the user says.
+        """
         await ctx.message.delete()
         await ctx.send(message)
 
     @commands.command()
     async def ping(self, ctx):
+        """
+        Pings the discord API for current response time.
+        """
         message = await ctx.send("Pong!")
         time_taken = (message.created_at - ctx.message.created_at).microseconds / 1000
         await message.edit(content=f"Pong! Latency is {time_taken:.0f}ms. "
