@@ -39,6 +39,9 @@ class Bot(commands.Bot):
         logger.info(f"discord.py version: {discord.__version__}")
         logger.info(f"Successfully logged in as {self.user}   ID: {self.user.id}")
 
+    async def on_guild_join(self, _guild):
+        await self.update_presence()
+
     async def on_error(self, event, *args):
         msg = f"{event} event error exception!\n{traceback.format_exc()}"
         logger.critical(msg)
@@ -56,18 +59,20 @@ class Bot(commands.Bot):
             await error_log_channel.send(f"```Num {count}/{num_messages}:\n{message}```")
 
     async def update_presence(self):
+        num_guilds = len(self.guilds)
+        num_users = sum(len(guild.members) for guild in self.guilds)
+        stats_message = f"{num_guilds} servers and {num_users} users"
+
+        # status automatically set to online if env does not exist
+        status = os.getenv("STATUS") or 'online'
+        await self.change_presence(status=status,
+                                   activity=discord.Activity(name=stats_message,
+                                                             type=discord.ActivityType.watching))
+
+        logger.info(f"Updated presence: {num_guilds} servers and {num_users} users")
+
+    async def scheduled_presence_update(self):
         await self.wait_until_ready()
         while not self.is_closed():
-            num_guilds = len(self.guilds)
-            num_users = sum(len(guild.members) for guild in self.guilds)
-            stats_message = f"{num_guilds} servers and {num_users} users"
-
-            status = os.getenv("STATUS")
-            if status is None:
-                status = 'online'
-
-            await self.change_presence(status=status,
-                                       activity=discord.Activity(type=discord.ActivityType.watching,
-                                                                 name=stats_message))
-            logger.info(f"Updated presence: {num_guilds} servers and {num_users} users")
-            await asyncio.sleep(60 * 15)  # 15 minutes
+            await self.update_presence()
+            await asyncio.sleep(60 * 60)  # 60 minutes
