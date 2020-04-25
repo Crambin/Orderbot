@@ -8,7 +8,7 @@ bot_developer_ids = (212241077695021056,)  # Crambor
 default_prefix = '!'
 
 # music
-ytdl_format_options = {
+YTDL_OPTIONS = {
     'format': 'bestaudio/best',
     'outtmpl': 'downloads/%(extractor)s-%(id)s-%(title)s.%(ext)s',
     'restrictfilenames': True,
@@ -20,4 +20,9 @@ ytdl_format_options = {
     'no_warnings': True,
     'default_search': 'auto',
     'source_address': '0.0.0.0'  # ipv6 addresses cause issues sometimes
+}
+
+FFMPEG_OPTIONS = {
+    'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5',
+    'options': '-vn',
 }
