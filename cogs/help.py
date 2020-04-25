@@ -23,7 +23,7 @@ class PrettyHelpCommand(commands.MinimalHelpCommand):
 
     def add_bot_commands_formatting(self, commands_, heading):
         if commands_:
-            max_length = 10
+            max_length = 12
             embed_space = "\u200b "
             joined = "\n".join(f"`{c.name}{embed_space * (max_length - len(c.name))}` - {c.short_doc}"
                                for c in commands_)
