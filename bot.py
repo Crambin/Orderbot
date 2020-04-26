@@ -24,6 +24,10 @@ class Bot(commands.Bot):
 
         logger.info("Loaded guild prefixes into memory")
 
+    def get_cog(self, name):
+        # this is really hacky and is probably a sin, could break something
+        return super().get_cog(name.capitalize())
+
     async def get_prefix(self, message):
         mention = re.match(rf"<@!{self.user.id}>\s*", message.content)
         if mention:

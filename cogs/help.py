@@ -7,6 +7,12 @@ logger = logging.getLogger(__name__)
 
 
 class PrettyHelpCommand(commands.MinimalHelpCommand):
+    def __init__(self):
+        super().__init__(verify_checks=False)
+
+        self.max_command_length = 12
+        self.embed_space = "\u200b "
+
     def get_opening_note(self):
         return None
 
@@ -23,17 +29,24 @@ class PrettyHelpCommand(commands.MinimalHelpCommand):
 
     def add_bot_commands_formatting(self, commands_, heading):
         if commands_:
-            max_length = 12
-            embed_space = "\u200b "
-            joined = "\n".join(f"`{c.name}{embed_space * (max_length - len(c.name))}` - {c.short_doc}"
+            joined = "\n".join(f"`{c.name}{self.embed_space * (self.max_command_length - len(c.name))}` - {c.short_doc}"
                                for c in commands_)
             self.paginator.add_line(f"\n**__{heading}__**")
             self.paginator.add_line(joined)
 
+    def add_subcommand_formatting(self, c):
+        fmt = f"`{c.name}{self.embed_space * (self.max_command_length - len(c.name))}` - {c.short_doc}"
+        self.paginator.add_line(fmt)
+
     async def send_pages(self):
         destination = self.get_destination()
+        if self.context.guild:
+            colour = self.context.me.top_role.colour
+        else:
+            colour = discord.Colour.gold()
+
         for page in self.paginator.pages:
-            embed = discord.Embed(title=discord.Embed.Empty, description=page, color=self.context.me.top_role.color)
+            embed = discord.Embed(title=discord.Embed.Empty, description=page, colour=colour)
             await destination.send(embed=embed)
 
 

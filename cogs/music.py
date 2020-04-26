@@ -152,8 +152,6 @@ class MusicPlayer:
 
 
 class Music(commands.Cog):
-    """Music related commands."""
-
     __slots__ = ('bot', 'players')
 
     def __init__(self, bot):
