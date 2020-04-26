@@ -38,6 +38,13 @@ class PrettyHelpCommand(commands.MinimalHelpCommand):
         fmt = f"`{c.name}{self.embed_space * (self.max_command_length - len(c.name))}` - {c.short_doc}"
         self.paginator.add_line(fmt)
 
+    def add_aliases_formatting(self, aliases):
+        fmt = '`' + '`, `'.join(aliases) + '`'
+        self.paginator.add_line(f'**{self.aliases_heading}** {fmt}', empty=True)
+
+    def get_command_signature(self, command):
+        return '`%s%s` %s' % (self.clean_prefix, command.qualified_name, command.signature)
+
     async def send_pages(self):
         destination = self.get_destination()
         if self.context.guild:
