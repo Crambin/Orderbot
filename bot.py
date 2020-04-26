@@ -69,7 +69,7 @@ class Bot(commands.Bot):
 
     async def update_presence(self):
         num_guilds = len(self.guilds)
-        num_users = sum(len(guild.members) for guild in self.guilds)
+        num_users = sum(guild.member_count for guild in self.guilds)
         stats_message = f"{num_guilds} servers and {num_users} users"
 
         # status automatically set to online if env does not exist
