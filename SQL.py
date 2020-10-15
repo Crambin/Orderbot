@@ -1,44 +1,49 @@
 import logging
-import psycopg2
-
+import asyncpg
 
 logger = logging.getLogger(__name__)
 
 
 class Database:
-    def __init__(self, database_url):
-        self.conn = psycopg2.connect(database_url, sslmode='require')
-        self.create_tables()
+    def __init__(self):
+        self.conn = None
+
+    @classmethod
+    async def create(cls, database_url):
+        self = cls()
+        self.conn = await asyncpg.connect(database_url)
+        await self.create_tables()
 
         logger.info("Successfully connected to SQL database.")
+        return self
 
-    def create_tables(self):
+    async def create_tables(self):
         tables_sql = ("""
         CREATE TABLE IF NOT EXISTS GuildTbl(
                 GuildID     BIGINT          NOT NULL    UNIQUE      PRIMARY KEY,
                 Prefix      VARCHAR(15)     NOT NULL
                 );""",)
 
-        cur = self.conn.cursor()
-        for table_sql in tables_sql:
-            cur.execute(table_sql)
+        for sql in tables_sql:
+            await self.process_sql(sql)
 
-        cur.close()
-        self.conn.commit()
+    async def process_sql(self, sql, *parameters):
+        records = []
+        async with self.conn.transaction():
+            async for record in self.conn.cursor(sql, *parameters):
+                records.append(record)
 
-    def process_sql(self, sql, parameters=()):
-        cur = self.conn.cursor()
-        cur.execute(sql, parameters)
-        self.conn.commit()
-
-        return cur
+        return records
 
     # guilds
-    def insert_guild(self, *record):
-        cur = self.process_sql("INSERT INTO GuildTbl(GuildID, Prefix) VALUES (%s, %s)", parameters=record)
-        cur.close()
+    async def insert_guild(self, *record):
+        await self.process_sql("INSERT INTO GuildTbl(GuildID, Prefix) VALUES ($1, $2)", *record)
 
-    def update_guild(self, guild_id, *record):
-        cur = self.process_sql("UPDATE GuildTbl SET Prefix = (%s) WHERE GuildID = (%s)",
-                               parameters=(*record, guild_id))
-        cur.close()
+    async def update_guild(self, guild_id, *record):
+        await self.process_sql("UPDATE GuildTbl SET Prefix = ($1) WHERE GuildID = ($2)",
+                               *record, guild_id)
+
+    async def get_guild_prefixes(self):
+        cur = await self.process_sql("SELECT GuildID, Prefix FROM GuildTbl")
+        guild_prefixes = dict(map(tuple, cur))
+        return guild_prefixes

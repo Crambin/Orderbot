@@ -18,7 +18,7 @@ class Other(commands.Cog):
         """
         Pings the discord API for current response time.
         """
-        message = await ctx.send("Pong!")
+        message = await ctx.send("Ping!")
         time_taken = (message.created_at - ctx.message.created_at).microseconds / 1000
         await message.edit(content=f"Pong! Latency is {time_taken:.0f}ms. "
                                    f"API latency is {self.bot.latency*1000:.0f}ms")

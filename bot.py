@@ -14,14 +14,14 @@ logger = logging.getLogger(__name__)
 
 class Bot(commands.Bot):
     def __init__(self, *args, **kwargs):
-        super().__init__(*args, command_prefix=Bot.get_prefix, case_insensitive=True, **kwargs)
+        super().__init__(*args, command_prefix=Bot.get_prefix, **kwargs)
         self.start_time = datetime.now()
-        self.db = SQL.Database(os.getenv('DATABASE_URL'))
+        self.guild_prefixes = None
+        self.db = None
 
-        cur = self.db.process_sql("SELECT GuildID, Prefix FROM GuildTbl")
-        self.guild_prefixes = dict(cur)
-        cur.close()
-
+    async def on_connect(self):
+        self.db = await SQL.Database.create(os.getenv('DATABASE_URL'))
+        self.guild_prefixes = await self.db.get_guild_prefixes()
         logger.info("Loaded guild prefixes into memory")
 
     def get_cog(self, name):
@@ -40,7 +40,7 @@ class Bot(commands.Bot):
         if prefix is None:
             prefix = constants.default_prefix
             self.guild_prefixes[message.guild.id] = prefix
-            self.db.insert_guild(message.guild.id, prefix)
+            await self.db.insert_guild(message.guild.id, prefix)
 
         return prefix
 

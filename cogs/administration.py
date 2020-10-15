@@ -26,7 +26,7 @@ class Administration(commands.Cog):
             return
 
         self.bot.guild_prefixes[ctx.guild.id] = prefix
-        self.bot.db.update_guild(ctx.guild.id, prefix)
+        await self.bot.db.update_guild(ctx.guild.id, prefix)
         await ctx.send(f"The command prefix has been changed to `{prefix}`\n"
                        f"To run commands, use `{prefix}command` or do `@{self.bot.user}` command")
 
