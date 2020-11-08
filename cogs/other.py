@@ -73,11 +73,20 @@ class Other(commands.Cog):
 
     @commands.command()
     async def tags(self, ctx):
+        """
+        Returns all the existing markov chain tags.
+        """
         tags = '`, `'.join(await self.bot.db.markov.get_tags())
-        await ctx.send(f"Current tags: \n`{tags}`")
+        if tags:
+            await ctx.send(f"Current tags: \n`{tags}`")
+        else:
+            await ctx.send("There are no tags currently existing.")
 
     @commands.command()
     async def markov(self, ctx, *, tag):
+        """
+        Uses a markov chain to generate sentences based on a dataset.
+        """
         tag = tag.lower()
         if tag in self.markov_models:
             model = self.markov_models.get(tag, None)
@@ -99,7 +108,6 @@ class Other(commands.Cog):
         """
         Uses an uploaded {tag}.txt file to make a new markov model.
         Tag must be at most 15 characters.
-        :param ctx:
         """
         def check(m):
             return m.author == ctx.message.author and m.channel == ctx.channel
