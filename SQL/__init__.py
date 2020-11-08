@@ -1,4 +1,5 @@
 from .guild import Guild
+from .markov import Markov
 
 import logging
 import asyncpg
@@ -10,6 +11,7 @@ class Database:
     def __init__(self):
         self.conn = None
         self.guild = Guild(self)
+        self.markov = Markov(self)
 
     @classmethod
     async def create(cls, database_url):
@@ -22,7 +24,8 @@ class Database:
 
     async def create_tables(self):
         with open('SQL/tables.sql') as f:
-            await self.process_sql(f.read())
+            for query in f.read().split(';'):
+                await self.process_sql(query)
 
     async def process_sql(self, sql, *parameters):
         records = []
