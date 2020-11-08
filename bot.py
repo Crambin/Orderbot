@@ -21,7 +21,7 @@ class Bot(commands.Bot):
 
     async def on_connect(self):
         self.db = await SQL.Database.create(os.getenv('DATABASE_URL'))
-        self.guild_prefixes = await self.db.get_guild_prefixes()
+        self.guild_prefixes = await self.db.guild.get_prefixes()
         logger.info("Loaded guild prefixes into memory")
 
     def get_cog(self, name):
@@ -40,7 +40,7 @@ class Bot(commands.Bot):
         if prefix is None:
             prefix = constants.default_prefix
             self.guild_prefixes[message.guild.id] = prefix
-            await self.db.insert_guild(message.guild.id, prefix)
+            await self.db.guild.insert(message.guild.id, prefix)
 
         return prefix
 
