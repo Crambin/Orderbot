@@ -7,7 +7,11 @@ class Markov:
 
     async def insert(self, name, pairs):
         pairs = json.dumps(pairs)
-        await self.db.process_sql("INSERT INTO MarkovTbl(Name, WordPairs) VALUES ($1, $2)", name, pairs)
+        await self.db.process_sql("""INSERT INTO MarkovTbl(Name, WordPairs) VALUES ($1, $2)
+                                     ON CONFLICT (Name) DO UPDATE
+                                     SET Name = $1,
+                                         WordPairs = $2""",
+                                  name, pairs)
 
     async def fetch(self, name):
         cur = await self.db.process_sql("SELECT WordPairs FROM MarkovTbl WHERE Name = ($1)", name)

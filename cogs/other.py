@@ -1,4 +1,6 @@
 import random
+import asyncio
+import urllib.request
 from discord.ext import commands
 
 
@@ -67,7 +69,7 @@ class Other(commands.Cog):
         message = await ctx.send("Ping!")
         time_taken = (message.created_at - ctx.message.created_at).microseconds / 1000
         await message.edit(content=f"Pong! Latency is {time_taken:.0f}ms. "
-                                   f"API latency is {self.bot.latency*1000:.0f}ms")
+                                   f"API latency is {self.bot.latency * 1000:.0f}ms")
 
     @commands.command()
     async def tags(self, ctx):
@@ -75,12 +77,12 @@ class Other(commands.Cog):
         await ctx.send(f"Current tags: \n`{tags}`")
 
     @commands.command()
-    async def markov(self, ctx, *, name):
-        name = name.lower()
-        if name in self.markov_models:
-            model = self.markov_models.get(name, None)
+    async def markov(self, ctx, *, tag):
+        tag = tag.lower()
+        if tag in self.markov_models:
+            model = self.markov_models.get(tag, None)
         else:
-            pairs = await self.bot.db.markov.fetch(name)
+            pairs = await self.bot.db.markov.fetch(tag)
             model = MarkovModel(word_pairs=pairs) if pairs else None
 
         if model is None:
@@ -88,8 +90,46 @@ class Other(commands.Cog):
             await self.tags(ctx)
             return
 
-        self.markov_models[name] = model
+        self.markov_models[tag] = model
         await ctx.send(model.generate())
+
+    # TODO: check against existing tags
+    @commands.command()
+    async def upload_markov(self, ctx):
+        """
+        Uses an uploaded {tag}.txt file to make a new markov model.
+        Tag must be at most 15 characters.
+        :param ctx:
+        """
+        def check(m):
+            return m.author == ctx.message.author and m.channel == ctx.channel
+
+        if len(ctx.message.attachments) == 0:
+            await ctx.send("Please send a `{tag}.txt` file now")
+            try:
+                ctx.message = await self.bot.wait_for('message', check=check, timeout=60)
+            except asyncio.TimeoutError:
+                await ctx.send("Command has timed out. Please try again.")
+                return
+
+        attachments = list(filter(lambda a: a.filename[-3:] == 'txt', ctx.message.attachments))
+        if len(attachments) == 0:
+            await ctx.send("**Command failed**;\n"
+                           "This command requires a dataset to be sent as a .txt attachment.")
+            return
+
+        for attachment in attachments:
+            tag = attachment.filename[:-4]
+            if len(tag) > 20:
+                await ctx.send(f"Tag `{tag}` could not be added as it is greater than 15 characters.")
+                continue
+
+            req = urllib.request.Request(attachment.url, headers={'User-Agent': 'Mozilla/5.0'})
+            with urllib.request.urlopen(req) as f:
+                model = MarkovModel(f.read().decode('utf-8').split())
+                await self.bot.db.markov.insert(tag, model.word_dict)
+                self.markov_models[tag] = model
+                await ctx.send(f"Tag `{tag}` has been created.")
 
 
 def setup(bot):
