@@ -71,7 +71,7 @@ class Other(commands.Cog):
         await message.edit(content=f"Pong! Latency is {time_taken:.0f}ms. "
                                    f"API latency is {self.bot.latency * 1000:.0f}ms")
 
-    @commands.command()
+    @commands.command(aliases=("tag",))
     async def tags(self, ctx):
         """
         Returns all the existing markov chain tags.
@@ -104,7 +104,7 @@ class Other(commands.Cog):
 
     # TODO: check against existing tags
     @commands.command()
-    async def upload_markov(self, ctx):
+    async def upload(self, ctx):
         """
         Uses an uploaded {tag}.txt file to make a new markov model.
         Tag must be at most 15 characters.
@@ -113,7 +113,7 @@ class Other(commands.Cog):
             return m.author == ctx.message.author and m.channel == ctx.channel
 
         if len(ctx.message.attachments) == 0:
-            await ctx.send("Please send a `{tag}.txt` file now")
+            await ctx.send("Please send a `{tag}.txt` file now:")
             try:
                 ctx.message = await self.bot.wait_for('message', check=check, timeout=60)
             except asyncio.TimeoutError:
