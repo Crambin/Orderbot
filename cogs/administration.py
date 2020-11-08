@@ -7,16 +7,20 @@ class Administration(commands.Cog):
         self.bot = bot
 
     @commands.command()
-    @commands.has_permissions(administrator=True)
     async def prefix(self, ctx, *, prefix=None):
         """
         Can be used to view or change the current prefix.
         """
-        if prefix is None:
+        if prefix is not None and not ctx.author.guild_permissions.administrator:
+            await ctx.send("You cannot set the guild prefix without the **Administrator** permission.")
+            return
+
+        elif prefix is None:
             prefix = self.bot.guild_prefixes[ctx.guild.id]
             await ctx.send(f"The command prefix is `{prefix}`\n"
                            f"To run commands, use `{prefix}command` or do `@{self.bot.user}` command")
             return
+
         elif prefix == "default":
             prefix = constants.default_prefix
 
