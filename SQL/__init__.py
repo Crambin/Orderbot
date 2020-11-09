@@ -1,8 +1,10 @@
+from .user import User
 from .guild import Guild
 from .markov import Markov
 
 import logging
 import asyncpg
+
 
 logger = logging.getLogger(__name__)
 
@@ -10,6 +12,7 @@ logger = logging.getLogger(__name__)
 class Database:
     def __init__(self):
         self.conn = None
+        self.user = User(self)
         self.guild = Guild(self)
         self.markov = Markov(self)
 
