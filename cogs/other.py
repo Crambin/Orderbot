@@ -2,6 +2,7 @@ import random
 import asyncio
 import urllib.request
 from discord.ext import commands
+from discord import AllowedMentions
 
 
 class MarkovModel:
@@ -59,7 +60,7 @@ class Other(commands.Cog):
         Will say whatever the user says.
         """
         await ctx.message.delete()
-        await ctx.send(message)
+        await ctx.send(message, allowed_mentions=AllowedMentions(everyone=False, roles=False))
 
     @commands.command()
     async def ping(self, ctx):
@@ -83,6 +84,7 @@ class Other(commands.Cog):
             await ctx.send("There are no tags currently existing.")
 
     @commands.command()
+    @commands.cooldown(1, 2, commands.BucketType.member)
     async def markov(self, ctx, *, tag):
         """
         Uses a markov chain to generate sentences based on a dataset.
@@ -103,6 +105,7 @@ class Other(commands.Cog):
         await ctx.send(model.generate())
 
     # TODO: check against existing tags
+    @commands.cooldown(1, 10, commands.BucketType.member)
     @commands.command()
     async def upload(self, ctx):
         """
