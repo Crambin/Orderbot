@@ -1,13 +1,15 @@
 import os
 import re
+import asyncio
 import logging
 import traceback
 from datetime import datetime
-import asyncio
+
 import discord
 from discord.ext import commands
-import constants
 import SQL
+import constants
+
 
 logger = logging.getLogger(__name__)
 

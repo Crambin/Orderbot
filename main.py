@@ -1,9 +1,11 @@
 import os
 import logging
 import traceback
-from pathlib import Path
 from sys import stdout
+from pathlib import Path
 from dotenv import load_dotenv
+
+import constants
 from bot import Bot
 
 root_logger = logging.getLogger()
@@ -21,6 +23,8 @@ if __name__ == "__main__":
     bot = Bot(case_insensitive=True)
     for extension_path in Path("./cogs").glob("*.py"):
         extension_name = extension_path.stem
+        if extension_name in constants.ignored_extensions:
+            continue
 
         dotted_path = f"cogs.{extension_name}"
         try:
