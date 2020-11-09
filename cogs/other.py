@@ -134,7 +134,7 @@ class Other(commands.Cog):
 
             req = urllib.request.Request(attachment.url, headers={'User-Agent': 'Mozilla/5.0'})
             with urllib.request.urlopen(req) as f:
-                model = MarkovModel(f.read().decode('utf-8').split())
+                model = MarkovModel(f.read().decode('utf-8', 'ignore').split())
                 await self.bot.db.markov.insert(tag, model.word_dict)
                 self.markov_models[tag] = model
                 await ctx.send(f"Tag `{tag}` has been created.")
