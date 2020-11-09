@@ -22,9 +22,6 @@ if __name__ == "__main__":
     for extension_path in Path("./cogs").glob("*.py"):
         extension_name = extension_path.stem
 
-        if extension_name == "command_error_handler":
-            continue
-
         dotted_path = f"cogs.{extension_name}"
         try:
             bot.load_extension(dotted_path)
