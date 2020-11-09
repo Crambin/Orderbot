@@ -28,6 +28,9 @@ class PrettyHelpCommand(commands.MinimalHelpCommand):
                 f"You can also type {command_} <category> for more info on a category.")
 
     def add_bot_commands_formatting(self, commands_, heading):
+        if heading == "Help":
+            return
+
         if commands_:
             joined = "\n".join(f"`{c.name}{self.embed_space * (self.max_command_length - len(c.name))}` - {c.short_doc}"
                                for c in commands_)
