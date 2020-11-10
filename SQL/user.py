@@ -22,4 +22,8 @@ class User:
     async def fetch_all_birthdays(self):
         return await self.db.process_sql("SELECT UserID, Birthday FROM UserTbl "
                                          "WHERE Birthday IS NOT NULL "
-                                         "ORDER BY Birthday")
+                                         "ORDER BY EXTRACT(MONTH FROM Birthday), "
+                                         "         EXTRACT(DAY FROM Birthday)")
+
+    async def delete_birthday(self, user_id):
+        await self.db.process_sql("DELETE FROM UserTbl WHERE UserID = $1", user_id)

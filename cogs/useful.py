@@ -43,10 +43,12 @@ class Useful(commands.Cog):
         except ValueError:
             text = "Language could not be found."
         except AttributeError:
-            return await self.translate(ctx, query=query, timeout=timeout-1, settings=settings)
+            return await self.translate(ctx, query=query, timeout=timeout - 1, settings=settings)
 
         await ctx.send(text, allowed_mentions=AllowedMentions(everyone=False, roles=False))
 
+    # TODO: allow user to delete themselves from the database
+    # TODO: remove admin perms from adding users to db
     @commands.command(aliases=('set_birthday', 'set_bday'))
     @commands.guild_only()
     async def setbday(self, ctx, *, query=None):
@@ -83,6 +85,52 @@ class Useful(commands.Cog):
         await self.bot.db.user.update_birthday(user.id, str(user), dob)
         await ctx.send(f"Birthday set successfully for {str(user)}.")
 
+    @staticmethod
+    async def get_next_birthday_info(birthday):
+        birth_year = birthday.year
+
+        today = datetime.date.today()
+        birthday = datetime.date(year=today.year, month=birthday.month, day=birthday.day)
+        if birthday < today:
+            birthday = datetime.date(year=today.year + 1, month=birthday.month, day=birthday.day)
+
+        days_left = (birthday - today).days
+        next_date = birthday.strftime("%d/%m/%Y")
+        next_age = birthday.year - birth_year
+        age_msg = str(next_age) + (
+            "th" if 4 <= next_age % 100 <= 20 else {1: "st", 2: "nd", 3: "rd"}.get(next_age % 10, "th"))
+
+        return days_left, next_date, age_msg
+
+    async def get_ordered_birthdays(self, ctx):
+        guild_member_ids = {member.id for member in ctx.guild.members}
+        birthdays = await self.bot.db.user.fetch_all_birthdays()
+
+        members = [user_record for user_record in birthdays if user_record['userid'] in guild_member_ids]
+        num_birthdays = len(members)
+        if num_birthdays == 0:
+            return []
+
+        index = 0
+        today = datetime.date.today().isoformat().split('-', 1)[1]
+        while members[index]['birthday'].isoformat().split('-', 1)[1] < today:
+            index += 1
+
+        return members[index:] + members[:index]
+
+    async def get_next_members_birthdays(self, ctx):
+        ordered_birthdays = await self.get_ordered_birthdays(ctx)
+        next_birthdays = [ordered_birthdays[0]]
+        first_birthday = next_birthdays[0]['birthday']
+        for user_record in ordered_birthdays[1:]:
+            birthday = user_record['birthday']
+            if birthday.day == first_birthday.day and birthday.month == first_birthday.month:
+                next_birthdays.append(birthday)
+            else:
+                break
+
+        return next_birthdays
+
     @commands.command()
     @commands.guild_only()
     async def birthday(self, ctx, *, query=None):
@@ -92,8 +140,10 @@ class Useful(commands.Cog):
         If an input is given, it will try to find that user and output their birthday.
         """
         if query is None:
-            await ctx.send("I haven't implemented this part yet :(")
-            return
+            next_birthdays = await self.get_next_members_birthdays(ctx)
+            if not next_birthdays:
+                await ctx.send("There are no birthdays registered on this server.")
+                return
         else:
             user = await utils.get_user_from_message(ctx, query)
             if user is None:
@@ -104,9 +154,20 @@ class Useful(commands.Cog):
             if not birthday:
                 await ctx.send(f"The user `{str(user)}` does not have a birthday stored in the database.")
                 return
+            next_birthdays = (user.id, birthday[0]['birthday'])
 
-        birthday = birthday[0]['birthday'].strftime("%d/%m/%Y")
-        await ctx.send(f"{str(user)}'s birthday is on `{birthday}`")
+        # TODO: implement this embed to include the all birthdays formatting
+        if len(next_birthdays) > 1:
+            await ctx.send("Will implement this later")
+            return
+
+        user_id, birthday = next_birthdays[0]
+        user = self.bot.get_user(user_id)
+
+        # TODO: make this an embed
+        days_left, next_date, age_msg = await self.get_next_birthday_info(birthday)
+        await ctx.send(f"The next birthday is on `{next_date}`.\n"
+                       f"This is {user}'s {age_msg} birthday, which is `{days_left}` days from now.")
 
 
 def setup(bot):
