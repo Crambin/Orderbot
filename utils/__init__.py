@@ -4,6 +4,7 @@ from . import helper
 from . import exceptions
 
 
+# TODO: also return message rather than ctx.send
 async def get_user_from_message(ctx, query):
     if len(ctx.message.mentions) != 0:
         return ctx.message.mentions[0]

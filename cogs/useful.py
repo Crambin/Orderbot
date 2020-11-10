@@ -14,6 +14,22 @@ class Useful(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
+    @commands.command(aliases=("user_info", "userinfo",))
+    async def user(self, ctx, user: typing.Union[discord.Member, str] = None):
+        """
+        Displays information about a user.
+        """
+        if user is None:
+            user = ctx.author
+        elif isinstance(user, str):
+            user = await utils.get_user_from_message(ctx, user)
+            if user is None:
+                await ctx.send("Please run the command again and specify which user you meant.")
+                return
+
+        embed = await utils.embed.member_info(self.bot, user)
+        await ctx.send(embed=embed)
+
     @commands.command()
     @commands.cooldown(1, 2, commands.BucketType.member)
     async def translate(self, ctx, *, query=None, timeout=10, settings=None):
@@ -51,7 +67,7 @@ class Useful(commands.Cog):
         await ctx.send(text, allowed_mentions=AllowedMentions(everyone=False, roles=False))
 
     @commands.command(aliases=('del_bday, delete_birthday',))
-    async def delbday(self, ctx, *, user: typing.Union[discord.Member, str] = None):
+    async def delbday(self, ctx, user: typing.Union[discord.Member, str] = None):
         """
         Deletes your birthday from the database.
         """

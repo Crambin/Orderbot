@@ -28,3 +28,33 @@ async def birthdays(bot, next_birthdays):
                         value="{} | `{} days` | `{}`".format(user.mention, days_left, next_date), inline=False)
 
         return embed
+
+
+async def member_info(bot, member):
+    roles = [role.mention for role in reversed(member.roles) if role.name != '@everyone']
+    num_roles = len(roles)
+    if num_roles > 50:
+        roles = roles[:50]
+        roles.append(f">>>> [50/{num_roles}] roles")
+
+    roles = ', '.join(roles) or "**No roles**"
+    server_join_time = member.joined_at.strftime("%d/%m/%Y @ %H:%M:%S")
+    discord_join_time = member.created_at.strftime("%d/%m/%Y @ %H:%M:%S")
+
+    user_record = await bot.db.user.fetch_birthday(member.id)
+    if not user_record:
+        birthday = None
+    else:
+        birthday = user_record[0]['birthday']
+
+    embed = discord.Embed(description=discord.Embed.Empty, title=discord.Embed.Empty, colour=member.top_role.colour)
+    embed.set_author(name=str(member), icon_url=member.avatar_url)
+    embed.set_thumbnail(url=member.avatar_url)
+    embed.add_field(name='**ID**', value=f"{member.id}")
+    embed.add_field(name='**Nickname**', value=member.nick)
+    embed.add_field(name='**Birthday**', value=birthday, inline=False)
+    embed.add_field(name=f'**Roles [{num_roles}]**', value=roles, inline=False)
+    embed.add_field(name='**Account Created**', value=discord_join_time)
+    embed.add_field(name='**Server Join Date**', value=server_join_time)
+
+    return embed
