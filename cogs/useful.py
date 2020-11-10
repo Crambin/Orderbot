@@ -111,22 +111,6 @@ class Useful(commands.Cog):
         await self.bot.db.user.update_birthday(user.id, str(user), dob)
         await ctx.send(f"Birthday set successfully for {str(user)}.")
 
-    @staticmethod
-    async def get_next_birthday_info(birthday):
-        today = datetime.date.today()
-        birth_year = birthday.year
-        birthday = datetime.date(year=today.year, month=birthday.month, day=birthday.day)
-        if birthday < today:
-            birthday = datetime.date(year=today.year + 1, month=birthday.month, day=birthday.day)
-
-        days_left = (birthday - today).days
-        next_date = birthday.strftime("%d/%m/%Y")
-        next_age = birthday.year - birth_year
-        age_msg = str(next_age) + (
-            "th" if 4 <= next_age % 100 <= 20 else {1: "st", 2: "nd", 3: "rd"}.get(next_age % 10, "th"))
-
-        return days_left, next_date, age_msg
-
     async def get_ordered_birthdays(self, ctx):
         guild_member_ids = {member.id for member in ctx.guild.members}
         birthdays = await self.bot.db.user.fetch_all_birthdays()
@@ -159,7 +143,7 @@ class Useful(commands.Cog):
 
         return next_birthdays
 
-    @commands.command()
+    @commands.command(aliases=('bday',))
     @commands.guild_only()
     async def birthday(self, ctx, *, query=None):
         """
@@ -193,12 +177,22 @@ class Useful(commands.Cog):
         user = self.bot.get_user(user_id)
 
         # TODO: make this an embed
-        days_left, next_date, age_msg = await self.get_next_birthday_info(birthday)
+        days_left, next_date, age_msg = await utils.helper.get_next_birthday_info(birthday)
         if query is None:
             await ctx.send(f"The next birthday is on `{next_date}`.\n" 
                            f"This is {user}'s {age_msg} birthday, which is `{days_left}` days from now.")
         else:
             await ctx.send(f"{user}'s {age_msg} birthday is on {next_date}, which is `{days_left}` days from now.")
+
+    @commands.command(aliases=('all_birthdays', 'all_bdays'))
+    @commands.guild_only()
+    async def allbdays(self, ctx):
+        """
+        Returns all the birthdays of the users in this server.
+        """
+        next_birthdays = await self.get_ordered_birthdays(ctx)
+        embed = await utils.embed.birthdays(self.bot, next_birthdays)
+        await ctx.send(embed=embed)
 
 
 def setup(bot):

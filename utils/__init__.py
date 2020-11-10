@@ -1,5 +1,6 @@
-from . import checks
 from . import embed
+from . import checks
+from . import helper
 from . import exceptions
 
 
