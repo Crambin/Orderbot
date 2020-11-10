@@ -1,7 +1,10 @@
+import typing
 import datetime
+from googletrans import Translator
+
+import discord
 from discord.ext import commands
 from discord import AllowedMentions
-from googletrans import Translator
 
 import utils
 import constants
@@ -47,7 +50,32 @@ class Useful(commands.Cog):
 
         await ctx.send(text, allowed_mentions=AllowedMentions(everyone=False, roles=False))
 
-    # TODO: allow user to delete themselves from the database
+    @commands.command(aliases=('del_bday, delete_birthday',))
+    async def delbday(self, ctx, *, user: typing.Union[discord.Member, str] = None):
+        """
+        Deletes your birthday from the database.
+        """
+        if user is None:
+            user = ctx.author
+        elif ctx.author.id not in constants.bot_developer_ids \
+                and str(user).lower() not in ("me", str(ctx.author).lower()):
+            await ctx.send("You can only delete your own birthday from the database.")
+            return
+        elif isinstance(user, str):
+            user = await utils.get_user_from_message(ctx, user)
+            if user is None:
+                await ctx.send("Please run the command again and specify which user you meant.")
+                return
+
+        current_record = await self.bot.db.user.fetch_birthday(user.id)
+        if not current_record or current_record[0]['birthday'] is None:
+            await ctx.send("Birthday is not stored in the database.")
+            return
+
+        # TODO: ask user for confirmation
+        await self.bot.db.user.update_birthday(user.id, str(user), None)
+        await ctx.send("Birthday has been successfully removed from the database.")
+
     # TODO: remove admin perms from adding users to db
     @commands.command(aliases=('set_birthday', 'set_bday'))
     @commands.guild_only()

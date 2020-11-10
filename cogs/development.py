@@ -4,20 +4,12 @@ import datetime
 from discord.ext import commands
 
 from utils import checks
-import utils
 
 
 class Development(commands.Cog, command_attrs=dict(hidden=True)):
     def __init__(self, bot):
         self.bot = bot
         self.process = psutil.Process(os.getpid())
-
-    @commands.command(aliases=('delbday',))
-    @commands.check(checks.is_bot_developer)
-    async def del_bday(self, ctx, *, query=None):
-        user = await utils.get_user_from_message(ctx, query)
-        await self.bot.db.user.delete_birthday(user.id)
-        await ctx.send(f"User {user} has been deleted from the birthdays db.")
 
     @commands.command()
     @commands.check(checks.is_bot_developer)

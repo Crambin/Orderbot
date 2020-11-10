@@ -24,6 +24,3 @@ class User:
                                          "WHERE Birthday IS NOT NULL "
                                          "ORDER BY EXTRACT(MONTH FROM Birthday), "
                                          "         EXTRACT(DAY FROM Birthday)")
-
-    async def delete_birthday(self, user_id):
-        await self.db.process_sql("DELETE FROM UserTbl WHERE UserID = $1", user_id)
