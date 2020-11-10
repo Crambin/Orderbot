@@ -76,7 +76,6 @@ class Useful(commands.Cog):
         await self.bot.db.user.update_birthday(user.id, str(user), None)
         await ctx.send("Birthday has been successfully removed from the database.")
 
-    # TODO: remove admin perms from adding users to db
     @commands.command(aliases=('set_birthday', 'set_bday'))
     @commands.guild_only()
     async def setbday(self, ctx, *, query=None):
@@ -87,18 +86,17 @@ class Useful(commands.Cog):
         if query is None:
             await ctx.send("Usage: `!setbday DD/MM/YYYY`.")
             return
+        elif not ctx.message.mentions:
+            user = ctx.author
+        elif ctx.author.id not in constants.bot_developer_ids:
+            await ctx.send("You can only set your own birthday into the database.")
+            return
         elif len(ctx.message.mentions) > 1:
             await ctx.send("I can only set the birthday of one user at a time.")
             return
-
-        if ctx.message.mentions and ctx.message.author.guild_permissions.administrator:
+        else:
             user = ctx.message.mentions[0]
             query = query.split("> ")[1]
-        elif ctx.message.mentions:
-            await ctx.send("You can only set your own birthday if you are not an administrator.")
-            return
-        else:
-            user = ctx.message.author
 
         try:
             dob = datetime.datetime.strptime(query, "%d/%m/%Y").date()
@@ -115,9 +113,8 @@ class Useful(commands.Cog):
 
     @staticmethod
     async def get_next_birthday_info(birthday):
-        birth_year = birthday.year
-
         today = datetime.date.today()
+        birth_year = birthday.year
         birthday = datetime.date(year=today.year, month=birthday.month, day=birthday.day)
         if birthday < today:
             birthday = datetime.date(year=today.year + 1, month=birthday.month, day=birthday.day)
