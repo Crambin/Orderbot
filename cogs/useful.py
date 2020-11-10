@@ -113,13 +113,16 @@ class Useful(commands.Cog):
 
         index = 0
         today = datetime.date.today().isoformat().split('-', 1)[1]
-        while members[index]['birthday'].isoformat().split('-', 1)[1] < today:
+        while index < num_birthdays and members[index]['birthday'].isoformat().split('-', 1)[1] < today:
             index += 1
 
         return members[index:] + members[:index]
 
     async def get_next_members_birthdays(self, ctx):
         ordered_birthdays = await self.get_ordered_birthdays(ctx)
+        if not ordered_birthdays:
+            return []
+
         next_birthdays = [ordered_birthdays[0]]
         first_birthday = next_birthdays[0]['birthday']
         for user_record in ordered_birthdays[1:]:
@@ -154,7 +157,7 @@ class Useful(commands.Cog):
             if not birthday:
                 await ctx.send(f"The user `{str(user)}` does not have a birthday stored in the database.")
                 return
-            next_birthdays = (user.id, birthday[0]['birthday'])
+            next_birthdays = [(user.id, birthday[0]['birthday'])]
 
         # TODO: implement this embed to include the all birthdays formatting
         if len(next_birthdays) > 1:
@@ -166,8 +169,11 @@ class Useful(commands.Cog):
 
         # TODO: make this an embed
         days_left, next_date, age_msg = await self.get_next_birthday_info(birthday)
-        await ctx.send(f"The next birthday is on `{next_date}`.\n"
-                       f"This is {user}'s {age_msg} birthday, which is `{days_left}` days from now.")
+        if query is None:
+            await ctx.send(f"The next birthday is on `{next_date}`.\n" 
+                           f"This is {user}'s {age_msg} birthday, which is `{days_left}` days from now.")
+        else:
+            await ctx.send(f"{user}'s {age_msg} birthday is on {next_date}, which is `{days_left}` days from now.")
 
 
 def setup(bot):
