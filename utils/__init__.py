@@ -13,7 +13,7 @@ async def get_user_from_message(ctx, query):
 
     members_found = []
     for member in ctx.message.guild.members:
-        if str(member) in query:
+        if str(member) in query or str(member.id) in query:
             return member
 
         elif query in member.name.lower() or query in member.display_name.lower():
