@@ -3,6 +3,7 @@ import logging
 import traceback
 from sys import stdout
 from pathlib import Path
+from discord import Intents
 from dotenv import load_dotenv
 
 import constants
@@ -20,7 +21,7 @@ root_logger.info(f"Running as main bot.")
 
 if __name__ == "__main__":
     load_dotenv()
-    bot = Bot(case_insensitive=True)
+    bot = Bot(case_insensitive=True, intents=Intents.all())
     for extension_path in Path("./cogs").glob("*.py"):
         extension_name = extension_path.stem
         if extension_name in constants.ignored_extensions:
