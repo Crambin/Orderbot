@@ -3,6 +3,7 @@ from discord.ext import commands
 from discord import AllowedMentions
 from googletrans import Translator
 
+import utils
 import constants
 
 
@@ -23,7 +24,7 @@ class Useful(commands.Cog):
             return
 
         if settings is None or settings == constants.lang_settings:
-            settings = constants.lang_settings
+            settings = constants.lang_settings.copy()
             for option in settings:
                 pos = query.find(option)
                 if pos != -1:
@@ -81,6 +82,31 @@ class Useful(commands.Cog):
 
         await self.bot.db.user.update_birthday(user.id, str(user), dob)
         await ctx.send(f"Birthday set successfully for {str(user)}.")
+
+    @commands.command()
+    @commands.guild_only()
+    async def birthday(self, ctx, *, query=None):
+        """
+        Shows the birthday of a user.
+        If no input is given, will show the birthday of the user whose birthday it is next.
+        If an input is given, it will try to find that user and output their birthday.
+        """
+        if query is None:
+            await ctx.send("I haven't implemented this part yet :(")
+            return
+        else:
+            user = await utils.get_user_from_message(ctx, query)
+            if user is None:
+                await ctx.send("Please run the command again and specify which user you meant.")
+                return
+
+            birthday = await self.bot.db.user.fetch_birthday(user.id)
+            if not birthday:
+                await ctx.send(f"The user `{str(user)}` does not have a birthday stored in the database.")
+                return
+
+        birthday = birthday[0]['birthday'].strftime("%d/%m/%Y")
+        await ctx.send(f"{str(user)}'s birthday is on `{birthday}`")
 
 
 def setup(bot):
