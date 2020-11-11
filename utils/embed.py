@@ -27,7 +27,7 @@ async def birthdays(bot, next_birthdays):
         embed.add_field(name="**{}** | {} Birthday".format(user.name, age_msg),
                         value="{} | `{} days` | `{}`".format(user.mention, days_left, next_date), inline=False)
 
-        return embed
+    return embed
 
 
 async def member_info(bot, member):
