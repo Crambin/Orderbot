@@ -20,12 +20,13 @@ def infraction(member, infraction_type, reason, duration=0, dm=False):
 async def birthdays(bot, next_birthdays):
     embed = discord.Embed(title="All Birthdays", color=discord.Colour.dark_gold())
 
+    # TODO: make this a react thing that lets you go through
     for user_record in next_birthdays:
         user_id, birthday = tuple(user_record)
         user = bot.get_user(user_id)
         days_left, next_date, age_msg = await get_next_birthday_info(birthday)
-        embed.add_field(name="**{}** | {} Birthday".format(user.name, age_msg),
-                        value="{} | `{} days` | `{}`".format(user.mention, days_left, next_date), inline=False)
+        embed.add_field(name=f"**{user.name}** | {age_msg} Birthday",
+                        value=f"`{next_date}` | `{days_left} days` | {user.mention}", inline=False)
 
     return embed
 
