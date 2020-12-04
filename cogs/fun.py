@@ -11,8 +11,8 @@ class Fun(commands.Cog):
         self.chat_bot = ac.Cleverbot(api_key, context=ac.DictContext()) if api_key else None
         self.is_talking = {}
 
-    @commands.command(aliases=('speak',))
-    async def say(self, ctx, *, query=None):
+    @commands.command()
+    async def speak(self, ctx, *, query=None):
         if not self.chat_bot:
             return await ctx.send("This command is currently disabled.")
         elif query is None:
